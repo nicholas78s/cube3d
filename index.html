@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cube 3D</title>
+	<style>
+		body {
+			padding: 0 0;
+			margin: 0 0;
+		}
+		#canvas1 {
+			border:1px solid blue;
+			width: 800px;
+			height: 800px;
+		}
+	</style>
+</head>
+<body onkeyup="keyUp(event)" onload="initPage()">
+	<canvas id="canvas1" onmousedown="canvasMouseDown(event, this)" onmouseup="canvasMouseUp(event, this)" onmousemove="canvasMouseMove(event, this)">обновите браузер</canvas>
+	<div id="info"></div>
+    <script src="scripts/cube3d.js"></script>
+</body>
+</html>
