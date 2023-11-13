@@ -1,10 +1,10 @@
-"use strict"; // работать в новом режиме браузера
+"use strict";
 
 console.log("start code");
 
-let f = 1250.0; // расстояние от камеры до экрана (фокусное)
-let centerx = 400; // ось X
-let centery = 400; // ось X
+let f = 1250.0; // the distance from the camera to the screen (focal)
+let centerx = 400; // X axis
+let centery = 400; // Y axis
 
 let canvas1 = document.getElementById("canvas1");
 let ctx = canvas1.getContext('2d');
@@ -13,7 +13,7 @@ let b_mousedown = false;
 let mouse_x = 0;
 let mouse_y = 0;
 
-// функция перевода 3D-координаты в 2D (f - фокусное расстояние)
+// translate 3D coordinates into 2D (f - focal length)
 function translate2d(x, z) {
 	return f * x / (f + z);
 }
@@ -29,14 +29,14 @@ class Vector {
 	}
 }
 
-// функция вычисления нормали для двух векторов (x1, y1, z1) и (x2, y2, z2), выходящих из точки (x, y, z)
+// calculating the normal for two vectors (x1, y1, z1) and (x2, y2, z2) coming out of the (x, y, z)
 function normale(x, y, z, x1, y1, z1, x2, y2, z2) {
-	// вектор A из начала координат
+	// vector A from the origin
 	let xa = x1 - x;
 	let ya = y1 - y;
 	let za = z1 - z;
 	
-	// вектор B из начала координат
+	// vector B from the origin
 	let xb = x2 - x;
 	let yb = y2 - y;
 	let zb = z2 - z;
@@ -45,72 +45,51 @@ function normale(x, y, z, x1, y1, z1, x2, y2, z2) {
 	y = (y1 + y2)/2.0;
 	z = (z1 + z2)/2.0;
 	
-	// нормаль уже смещенная в (x, y, z)
-	/*let xc = (ya*zb - za*yb) + x;
-	let yc = (za*xb - xa*zb) + y;
-	let zc = (xa*yb - ya*xb) + z;*/
-	// нормаль уже смещенная в (x, y, z) и укороченная в 20 раз
-	
+	// normal, shifted to (x, y, z) and shortened by 50
 	let xc = (ya*zb - za*yb)/50 + x;
 	let yc = (za*xb - xa*zb)/50 + y;
 	let zc = (xa*yb - ya*xb)/50 + z;
 	
-	// нормаль распорложенная в центре координат (0, 0, 0)
-	// если координата z нормали - отрицательная, то грань невидимая
-	/*let xc = (ya*zb - za*yb) + x;
-	let yc = (za*xb - xa*zb) + y;
-	let zc = (xa*yb - ya*xb) + z;*/
-	
-	//let n = new Vector(x, y, z, xc, yc, zc);
-	//let n = new Vector(x, y, z, xc, yc, zc);
 	let n = new Vector(x, y, z, xc, yc, zc);
-	
-	//console.log('v1: ('+xa+', '+ya+', '+za+')');
-	//console.log('v2: ('+xb+', '+yb+', '+zb+')');
-	//console.log('normale: ('+(ya*zb - za*yb)+', '+(za*xb - xa*zb)+', '+(xa*yb - ya*xb)+')');
 	
 	return(n);
 }
 
-// угол между векторами
+// angle between vectors
 function vectAngle(v1, v2) {
-	// сместить v1 в начало координат
+	// move v1 to the origin
 	let x1 = v1.x2 - v1.x1;
 	let y1 = v1.y2 - v1.y1;
 	let z1 = v1.z2 - v1.z1;
 	
-	// сместить v2 в начало координат
+	// move v2 to the origin
 	let x2 = v2.x2 - v2.x1;
 	let y2 = v2.y2 - v2.y1;
 	let z2 = v2.z2 - v2.z1;
 	
 	let cos_a = (x1*x2 + y1*y2 + z1*z2) / ( Math.sqrt(x1*x1+y1*y1+z1*z1) * Math.sqrt(x2*x2+y2*y2+z2*z2) );
-	//return (Math.acos(cos_a));
 
 	return (cos_a);
 }
 
 function convert(integer) {
     var str = Number(parseInt(integer)).toString(16);
-	//console.log(Number(integer));
     return str.length == 1 ? "0" + str : str;
 };
 
 function to_rgb(r, g, b) { return "#" + convert(r) + convert(g) + convert(b); }
 
-//var color = to_rgb(r, g, b);
-
 class MyCube {
-	// сторона куба
+	// cube side
 	h = 1;    
-	// координаты в 3D
+	// 3D
 	x = [];
 	y = [];
 	z = [];
-	// координаты в 2D
+	// 2D
 	x2 = [];
 	y2 = [];
-	// грани с перечислением номеров вершин
+	// faces with an enumeration of vertex numbers
 	surface = [];
 
 	constructor(x, y, z, h, canvas_context) {
@@ -152,7 +131,7 @@ class MyCube {
 		this.y[7] = 1.0*y + h/2.0;
 		this.z[7] = 1.0*z + h/2.0;
 		
-		// грани (перечисление номеров вершин, против часовой стрелки, чтобы нормаль шла наружу)
+		// faces (enumeration of vertex numbers, counterclockwise, so that the normal goes outward)
 		this.surface[0] = [0, 3, 2, 1, 0];
 		this.surface[1] = [1, 2, 6, 5, 1];
 		this.surface[2] = [5, 6, 7, 4, 5];
@@ -160,7 +139,7 @@ class MyCube {
 		this.surface[4] = [0, 1, 5, 4, 0];
 		this.surface[5] = [3, 7, 6, 2, 3];
 		
-		this.calc2d(); // пересчитать 2D-координаты
+		this.calc2d(); // recalculate 2D coordinates
 	}
 
 	calc2d() {
@@ -172,10 +151,10 @@ class MyCube {
 	
 	draw() {
 		
-		// очистка
+		// clearing
 		this.canvas_context.clearRect(0, 0, this.canvas_context.canvas.width, this.canvas_context.canvas.height);
 		
-		// оси координат
+		// coordinate axes
 		this.canvas_context.strokeStyle = "lightgray";
 		this.canvas_context.beginPath();
 		this.canvas_context.moveTo(centerx, 0);
@@ -191,78 +170,36 @@ class MyCube {
 		
 		for(let i=0; i < this.surface.length; i++) 
 		{
-			let n = this.surface[i][0]; // номер первой вершины i-й грани
+			let n = this.surface[i][0]; // the number of the first vertex of the i-th face
 			let current_surface = this.surface[i];
 			
-			// нормаль к двум векторам из вершины 0->1 и 0->3
-			let n0 = current_surface[0]; // номер "0" вершины
-			let n1 = current_surface[1]; // номер "1" вершины
-			let n2 = current_surface[3]; // номер "3" вершины
+			// normal to two vectors from vertex 0->1 and 0->3
+			let n0 = current_surface[0]; // vertex 0
+			let n1 = current_surface[1]; // vertex 1
+			let n2 = current_surface[3]; // vertex 3
 			
 			let current_normale = new normale(this.x[n0], this.y[n0], this.z[n0], this.x[n1], this.y[n1], this.z[n1], this.x[n2], this.y[n2], this.z[n2]);
 			
-			/*
-			// нарисовать нормаль
-			//if(i==5) {
-				let normale2d_x1 = translate2d(current_normale.x1, current_normale.z1);
-				let normale2d_y1 = translate2d(current_normale.y1, current_normale.z1);
-				let normale2d_x2 = translate2d(current_normale.x2, current_normale.z2);
-				let normale2d_y2 = translate2d(current_normale.y2, current_normale.z2);
-				
-				canvas_context.beginPath();
-				canvas_context.strokeStyle = "red";
-				
-				canvas_context.moveTo(centerx + normale2d_x1, centery + normale2d_y1);
-				canvas_context.lineTo(centerx + normale2d_x2, centery + normale2d_y2);
-
-				canvas_context.stroke();
-			//}
-			*/
-			
-			// вектор в сторону камеры
+			// vector towards the camera
 			let current_camera = new Vector(this.x[n0], this.y[n0], this.z[n0], 0, 0, -f);
 			let current_ang = vectAngle(current_normale, current_camera);
-			//console.log('angle: '+current_ang);
 			
-			// отобразить грань, если косинус угла между нормалью к поверхности и вектором в сторону камеры >= 0
+			// display the face (if the cosine of the angle between the normal to the surface and the vector towards the camera >= 0)
 			if(current_ang >= 0) {
 			
 				let color = to_rgb(current_ang*255, current_ang*128, current_ang*128);
-				//console.log(color);
 				
-				//canvas_context.fillStyle = '#fff';
 				this.canvas_context.fillStyle = color;
 				this.canvas_context.beginPath();
 				
-				/*if(current_ang >= 0)
-					this.canvas_context.strokeStyle = "black";
-				else
-					this.canvas_context.strokeStyle = "red";*/
 				this.canvas_context.strokeStyle = color;
 				
 				this.canvas_context.moveTo(centerx + this.x2[n], centery + this.y2[n]);
 				
-				//console.log(current_surface);
 				for(let j=1; j < current_surface.length; j++) {
-					n = current_surface[j]; // номер следующей вершины i-й грани
+					n = current_surface[j]; // the number of the next vertex of the i-th face
 					this.canvas_context.lineTo(centerx + this.x2[n], centery + this.y2[n]);
 				}
-				
-				//ctx.lineWidth = 5;
-				//ctx.lineJoin = "round";
-				//ctx.strokeStyle = this.surface[i].color;
-				
-				
-				/*
-				ctx.fillStyle = '#f00';
-				ctx.beginPath();
-				ctx.moveTo(0, 0);
-				ctx.lineTo(100,50);
-				ctx.lineTo(50, 100);
-				ctx.lineTo(0, 90);
-				ctx.closePath();
-				ctx.fill();
-				*/
 				
 				this.canvas_context.closePath();
 				this.canvas_context.stroke();
@@ -270,11 +207,8 @@ class MyCube {
 			}
 			
 		}
-		// информация
-		//document.getElementById('info').innerText = 'x:'+this.x[0]+this.h/2+' y:'+this.y[0]+this.h/2+' z:'+this.z[0]+this.h/2;
-		//document.querySelector('#info').innerText = 'x:'+(this.x[0]+this.h/2).toFixed(2)+' y:'+(this.y[0]+this.h/2).toFixed(2)+' z:'+(this.z[0]+this.h/2).toFixed(2);
+		// info
 		document.querySelector('#info').innerText = 'x:'+this.center_x+' y:'+this.center_y+' z:'+this.center_z;
-		//document.querySelector('#info').innerText = 'x:'+this.x[0]+' y:'+this.y[0]+' z:'+this.z[0];
 	}
 	
 	clear() {
@@ -296,10 +230,10 @@ class MyCube {
 		}
 	}
 
-	// поворот вокруг центра куба
+	// rotate around the center of the cube
 	rotate(dx) {
 		for(let i=0; i < this.x.length; i++) {
-			// сместить вершину с центром в (0, 0, 0) для вращения вокруг центра куба
+			// shift the vertex centered at (0, 0, 0) to rotate around the center of the cube
 			let temp_x = this.x[i] - this.center_x;
 			let temp_y = this.y[i] - this.center_y;
 			let temp_z = this.z[i] - this.center_z;
@@ -315,10 +249,10 @@ class MyCube {
 		}
 	}
 	
-	// поворот вокруг центра куба
+	// rotate around the center of the cube
 	rotate2(dy) {
 		for(let i=0; i < this.x.length; i++) {
-			// сместить вершину с центром в (0, 0, 0) для вращения вокруг центра куба
+			// shift the vertex centered at (0, 0, 0) to rotate around the center of the cube
 			let temp_x = this.x[i] - this.center_x;
 			let temp_y = this.y[i] - this.center_y;
 			let temp_z = this.z[i] - this.center_z;
@@ -337,16 +271,16 @@ class MyCube {
 }
 
 class MyPyramide {
-	// сторона
+	// side
 	h = 1;    
-	// координаты в 3D
+	// 3D
 	x = [];
 	y = [];
 	z = [];
-	// координаты в 2D
+	// 2D
 	x2 = [];
 	y2 = [];
-	// грани с перечислением номеров вершин
+	// faces with an enumeration of vertex numbers
 	surface = [];
 
 	constructor(x, y, z, h, canvas_context) {
@@ -360,7 +294,7 @@ class MyPyramide {
 		this.y[0] = 1.0*y;
 		this.z[0] = 1.0*z;
 		
-		let angl = 2*3.1416/3; // 120 градусов
+		let angl = 2*3.1416/3; // 120 degrees
 			
 		this.x[1] = h * ( Math.cos(angl) * this.x[0] / h - Math.sin(angl) * this.z[0] / h);
 		this.y[1] = this.y[0];
@@ -370,23 +304,23 @@ class MyPyramide {
 		this.y[2] = this.y[0];
 		this.z[2] = h * ( Math.cos(2*angl) * this.z[0] / h + Math.sin(2*angl) * this.x[0] / h);
 		
-		angl = -3.1416/2; // 90 градусов
+		angl = -3.1416/2; // 90 degrees
 		
-		// длина грани
+		// face length
 		let r = Math.sqrt((this.x[1]-this.x[0])*(this.x[1]-this.x[0]) + (this.z[1]-this.z[0])*(this.z[1]-this.z[0]));
 		
-		// верхняя точка пирамиды
+		// the top point of the pyramid
 		this.x[3] = r * ( Math.cos(angl) * this.x[0] / r - Math.sin(angl) * this.y[0] / r);
 		this.y[3] = r * ( Math.cos(angl) * this.y[0] / r + Math.sin(angl) * this.x[0] / r);
 		this.z[3] = this.z[0];
 		
-		// грани (перечисление номеров вершин, против часовой стрелки, чтобы нормаль шла наружу)
+		// faces (enumeration of vertex numbers, counterclockwise, so that the normal goes outward)
 		this.surface[0] = [0, 2, 1, 0];
 		this.surface[1] = [0, 3, 2, 0];
 		this.surface[2] = [2, 3, 1, 2];
 		this.surface[3] = [1, 3, 0, 1];
 		
-		this.calc2d(); // пересчитать 2D-координаты
+		this.calc2d(); // recalculate 2D coordinates
 	}
 
 	calc2d() {
@@ -398,10 +332,10 @@ class MyPyramide {
 	
 	draw() {
 		
-		// очистка
+		// clearing
 		this.canvas_context.clearRect(0, 0, this.canvas_context.canvas.width, this.canvas_context.canvas.height);
 		
-		// оси координат
+		// coordinate axes
 		this.canvas_context.strokeStyle = "lightgray";
 		this.canvas_context.beginPath();
 		this.canvas_context.moveTo(centerx, 0);
@@ -417,18 +351,18 @@ class MyPyramide {
 		
 		for(let i=0; i < this.surface.length; i++) 
 		{
-			let n = this.surface[i][0]; // номер первой вершины i-й грани
+			let n = this.surface[i][0]; // the number of the first vertex of the i-th face
 			let current_surface = this.surface[i];
 			
-			// нормаль к двум векторам из вершины 0->1 и 0->3
-			let n0 = current_surface[0]; // номер "0" вершины
-			let n1 = current_surface[1]; // номер "1" вершины
-			let n2 = current_surface[2]; // номер "3" вершины
+			// normal to two vectors from vertex 0->1 and 0->3
+			let n0 = current_surface[0]; 
+			let n1 = current_surface[1]; 
+			let n2 = current_surface[2]; 
 			
 			let current_normale = new normale(this.x[n0], this.y[n0], this.z[n0], this.x[n1], this.y[n1], this.z[n1], this.x[n2], this.y[n2], this.z[n2]);
 			
 			/*
-			// нарисовать нормаль
+			// draw a normal
 			//if(i==5) {
 				let normale2d_x1 = translate2d(current_normale.x1, current_normale.z1);
 				let normale2d_y1 = translate2d(current_normale.y1, current_normale.z1);
@@ -445,12 +379,11 @@ class MyPyramide {
 			//}
 			*/
 			
-			// вектор в сторону камеры
+			// vector towards the camera
 			let current_camera = new Vector(this.x[n0], this.y[n0], this.z[n0], 0, 0, -f);
 			let current_ang = vectAngle(current_normale, current_camera);
-			//console.log('angle: '+current_ang);
 			
-			// отобразить грань, если косинус угла между нормалью к поверхности и вектором в сторону камеры >= 0
+			// display the face if the cosine of the angle between the normal to the surface and the vector towards the camera >= 0
 			console.log(current_ang);
 			//if(current_ang >= 0) {
 			if(1==1) {
@@ -483,11 +416,8 @@ class MyPyramide {
 			}
 			
 		}
-		// информация
-		//document.getElementById('info').innerText = 'x:'+this.x[0]+this.h/2+' y:'+this.y[0]+this.h/2+' z:'+this.z[0]+this.h/2;
-		//document.querySelector('#info').innerText = 'x:'+(this.x[0]+this.h/2).toFixed(2)+' y:'+(this.y[0]+this.h/2).toFixed(2)+' z:'+(this.z[0]+this.h/2).toFixed(2);
+		// info
 		document.querySelector('#info').innerText = 'x:'+this.center_x+' y:'+this.center_y+' z:'+this.center_z;
-		//document.querySelector('#info').innerText = 'x:'+this.x[0]+' y:'+this.y[0]+' z:'+this.z[0];
 	}
 	
 	clear() {
@@ -509,10 +439,10 @@ class MyPyramide {
 		}
 	}
 
-	// поворот вокруг центра 
+	// turn around the center
 	rotate(dx) {
 		for(let i=0; i < this.x.length; i++) {
-			// сместить вершину с центром в (0, 0, 0) для вращения вокруг центра 
+			// shift the vertex centered at (0, 0, 0) to rotate around the center
 			let temp_x = this.x[i] - this.center_x;
 			let temp_y = this.y[i] - this.center_y;
 			let temp_z = this.z[i] - this.center_z;
@@ -528,10 +458,10 @@ class MyPyramide {
 		}
 	}
 	
-	// поворот вокруг центра 
+	// turn around the center
 	rotate2(dy) {
 		for(let i=0; i < this.x.length; i++) {
-			// сместить вершину с центром в (0, 0, 0) для вращения вокруг центра 
+			// shift the vertex centered at (0, 0, 0) to rotate around the center
 			let temp_x = this.x[i] - this.center_x;
 			let temp_y = this.y[i] - this.center_y;
 			let temp_z = this.z[i] - this.center_z;
@@ -549,7 +479,7 @@ class MyPyramide {
 
 }
 
-// новый кубик:
+// new cube
 let cube1 = new MyCube(0, 0, -880, 40, ctx);
 let pyr1 = new MyPyramide(0, 0, 0, 40, ctx);
 
@@ -573,7 +503,6 @@ function keyUp(e)
     (e.metaKey ? ' metaKey' : '') +
     (e.repeat ? ' (repeat)' : '') +
     "\n";
-	//console.log(text);	
 	
 	let dx = 40;
 	let dy = 40;
@@ -660,7 +589,6 @@ function canvasMouseDown(e, obj) {
 	b_mousedown = true;
 	mouse_x = e.offsetX;
 	mouse_y = e.offsetY;
-	//console.log('mouse_x: '+mouse_x+' mouse_y: '+mouse_y);
 }
 
 function canvasMouseUp(e, obj) {
@@ -669,8 +597,6 @@ function canvasMouseUp(e, obj) {
 
 function canvasMouseMove(e, obj) {
 	if (b_mousedown === true) {
-		//drawLine(context, x, y, e.offsetX, e.offsetY);
-		
 		let dx = e.offsetX - mouse_x;
 		let dy = e.offsetY - mouse_y;
 		
@@ -679,16 +605,10 @@ function canvasMouseMove(e, obj) {
 		
 		let obj = cube1;
 		
-		// повернуть куб
-		//cube1.rotate( dx / 128 );
-		//cube1.rotate2( dy / 128 );
+		// rotate cube
 		obj.rotate( dx / 128 );
 		obj.rotate2( dy / 128 );
 		
-		// перерисовать куб
-		//cube1.draw();
 		obj.draw();
-		
-		//console.log('mouse_x: '+mouse_x+' mouse_y: '+mouse_y);
 	}
 }
